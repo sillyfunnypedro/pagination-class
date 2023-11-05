@@ -4,7 +4,14 @@
 // paginationToken:string}
 
 export interface MessageContainer {
-    messages: string[],
+    user: string,
+    message: string,
+    timestamp: Date,
+    id: number
+}
+
+export interface MessagesContainer {
+    messages: MessageContainer[],
     paginationToken: string
 }
 

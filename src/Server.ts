@@ -59,6 +59,12 @@ app.get('/', (req, res) => {
     return res.json(result);
 });
 
+app.get('/messages/getall', (req, res) => {
+    const result = database.getAllMessages();
+    console.log('get /messages/getall');
+    return res.json(result);
+});
+
 
 app.get('/messages/get/:pagingToken?', (req, res) => {
     // if there is no :pagingToken, then it will be an empty string

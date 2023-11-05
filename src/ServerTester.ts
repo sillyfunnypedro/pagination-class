@@ -1,9 +1,10 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { MessageContainer, serverPort } from './Globals';
+import { MessagesContainer, MessageContainer, serverPort } from './Globals';
 import { get } from 'http';
 import { start } from 'repl';
+import { send } from 'process';
 
 // get the command line arguments
 
@@ -44,12 +45,12 @@ async function getMessages(pagingToken: string) {
     if (result.status !== 200) {
         return null;
     }
-    return result.data as MessageContainer;
+    return result.data as MessagesContainer;
 }
 
 
 
-async function testSendMessages() {
+async function testSendMessages(numberOfMessages: number) {
     const messages = [
         'Hello World',
         'This is a test',
@@ -72,7 +73,7 @@ async function testSendMessages() {
     ];
 
     const promises: Promise<any>[] = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < numberOfMessages; i++) {
         const message = messages[Math.floor(Math.random() * messages.length)];
         const user = users[Math.floor(Math.random() * users.length)];
         promises.push(sendTestMessage(message, user));
@@ -81,41 +82,47 @@ async function testSendMessages() {
     return Promise.all(promises);
 }
 
-async function testGetMessages(startToken: number | undefined = undefined, expectedCount: number) {
+async function testGetMessages(testName: string, startToken: number | undefined = undefined, expectedCount: number): Promise<MessageContainer[] | undefined> {
     let paginationToken = '';
     if (startToken !== undefined) {
         paginationToken = `__${startToken.toString().padStart(10, '0')}__`;
     }
 
-
+    let messagesFound: MessageContainer[] = []
+    let messagesPackage: MessagesContainer | null = null;
     let numberOfMessages = 0;
-    let messages = await getMessages(paginationToken);
 
-    if (!messages) {
-        console.error('Error getting messages');
-        return;
-    }
 
-    while (messages.paginationToken !== '__END__') {
-        numberOfMessages += messages.messages.length;
-        paginationToken = messages.paginationToken;
-        messages = await getMessages(paginationToken);
-        if (!messages) {
+
+
+    while (paginationToken !== '__END__') {
+        messagesPackage = await getMessages(paginationToken);
+
+
+        if (!messagesPackage) {
             console.error('Error getting messages');
             return;
         }
+
+        paginationToken = messagesPackage!.paginationToken;
+        let messages = messagesPackage!.messages;
+        numberOfMessages += messages.length;
+        messagesFound.push(...messages);
     }
 
-    // add the last set of messages
-    numberOfMessages += messages.messages.length;
 
+
+    console.log('*'.repeat(80) + '\n');
+    console.log(`Test: ${testName}`);
+    console.log(`Expected: ${expectedCount} messages`);
     if (numberOfMessages !== expectedCount) {
         console.error(`Error: expected ${expectedCount} messages, but got ${numberOfMessages}`);
         return;
     }
     console.log(`Success: got ${numberOfMessages} messages`)
+    console.log('\n' + '*'.repeat(80));
 
-
+    return messagesFound;
 }
 
 if (!pingServer()) {
@@ -125,9 +132,52 @@ if (!pingServer()) {
     console.log(`Server running at ${baseURL}`);
 }
 
-resetTestData();
-testSendMessages();
 
-testGetMessages(undefined, 100);
-testGetMessages(3, 4);
-testGetMessages(1000, 0);
+
+
+async function runTests() {
+    await resetTestData();
+    let foundMessages = await testGetMessages("Fetching Empty Database", undefined, 0);
+    console.log(foundMessages);
+
+    await testSendMessages(1);
+
+    foundMessages = await testGetMessages("Fetching one message Database", undefined, 1);
+    console.log(foundMessages);
+    await testGetMessages("Fetching one message star 0", 0, 1);
+
+
+    await resetTestData();
+
+    // send 100 messages
+    await testSendMessages(100);
+    foundMessages = await testGetMessages("fetching all, expect 100", undefined, 100);
+    // check that the ID of the messages are in the right order
+    for (let i = 0; i < foundMessages!.length; i++) {
+        const expectedID = foundMessages!.length - i - 1;
+        const foundID = foundMessages![i].id;
+        if (foundID !== expectedID)
+            console.error(`Error: expected message ${i} to have id ${expectedID} but got ${foundMessages![i].id}`);
+    }
+    foundMessages = await testGetMessages("fetching 4 messages", 3, 4);
+    foundMessages = await testGetMessages("Fetching out of range", 1000, 0);
+
+    await sendTestMessage('Hello World', 'Jose');
+    foundMessages = await testGetMessages("fetching all expect 101", undefined, 101);
+    const lastMessage = foundMessages![0];
+    if (lastMessage.user !== 'Jose') {
+        console.error(`Error: expected last message to be from Jose, but got ${lastMessage.user}`);
+    }
+    if (lastMessage.message !== 'Hello World') {
+        console.error(`Error: expected last message to be 'Hello World', but got ${lastMessage.message}`);
+    }
+    if (lastMessage.id !== 100) {
+        console.error(`Error: expected last message to have id 100, but got ${lastMessage.id}`);
+    }
+
+
+
+
+}
+
+runTests();

@@ -4,9 +4,9 @@
  * @class Database
  */
 
-import { MessageContainer } from './Globals';
+import { MessagesContainer, MessageContainer } from './Globals';
 
-class Message {
+class Message implements MessageContainer {
     /**
      * The message text
      * 
@@ -14,7 +14,7 @@ class Message {
      * @type {string}
      * @memberof Message
      */
-    private text: string;
+    message: string;
     /**
      * The user who sent the message
      * 
@@ -22,7 +22,7 @@ class Message {
      * @type {string}
      * @memberof Message
      */
-    private user: string;
+    user: string;
     /**
      * The timestamp of the message
      * 
@@ -30,7 +30,7 @@ class Message {
      * @type {Date}
      * @memberof Message
      */
-    private timestamp: Date;
+    timestamp: Date;
     /**
      * the id of the message 
      * @param {number} id
@@ -47,7 +47,7 @@ class Message {
 
 
     constructor(text: string, user: string, id: number) {
-        this.text = text;
+        this.message = text;
         this.user = user;
         this.timestamp = new Date();
         this.id = id;
@@ -60,11 +60,11 @@ class Message {
      * @memberof Message
      */
     getText(): string {
-        return this.text;
+        return this.message;
     }
 
     getTextFormated(): string {
-        return `[${this.timestamp.toLocaleTimeString()}]${this.user}: ${this.text}`;
+        return `[${this.timestamp.toLocaleTimeString()}]${this.user}: ${this.message}`;
     }
 }
 
@@ -109,13 +109,23 @@ class Database {
         this.messages.unshift(new Message(message, user, this.messageCount++));
     }
 
+    // get all messages  this is for testing only, do not use in production
+    getAllMessages(): MessagesContainer {
+        const result: MessagesContainer = {
+            messages: this.messages,
+            paginationToken: "__TEST_DISABLE_IN_PRODUCTION__"
+        }
+
+        return result;
+    }
+
     /**
      * Get all messages paged by 10
      * 
      * @returns {Message[]} 
      * @memberof Database
      */
-    getMessages(pagingToken: string): MessageContainer {
+    getMessages(pagingToken: string): MessagesContainer {
         // if paging token is "__END__" then send empty array and "__END__"
         if (pagingToken === "__END__") {
             return {
@@ -126,8 +136,8 @@ class Database {
 
         // if less than paging size then send message and "__END__"
         if (this.messages.length <= 10) {
-            const result: MessageContainer = {
-                messages: this.messages.map((message) => message.getTextFormated()),
+            const result: MessagesContainer = {
+                messages: this.messages,
                 paginationToken: "__END__"
             }
             return result;
@@ -142,15 +152,15 @@ class Database {
             // get the id of the next message in the array right now
             const nextMessageId = this.messages[10].id;
             const paginationToken = `__${nextMessageId.toString().padStart(10, '0')}__`;
-            const result: MessageContainer = {
-                messages: messagesToSend.map((message) => message.getTextFormated()),
+            const result: MessagesContainer = {
+                messages: messagesToSend,
                 paginationToken: paginationToken
             }
             return result;
         }
 
         // get the next message id from the token
-        const nextMessageId = parseInt(pagingToken.substring(2, 12));
+        let nextMessageId = parseInt(pagingToken.substring(2, 12));
         // get the index of the next message
         const nextMessageIndex = this.messages.findIndex((message) => message.id === nextMessageId);
         // if the next message is not found, then return empty array and "__END__"
@@ -166,27 +176,27 @@ class Database {
         const messagesToSend = this.messages.slice(nextMessageIndex, nextMessageIndex + 10);
         if (messagesToSend.length < 10) {
             return {
-                messages: messagesToSend.map((message) => message.getTextFormated()),
+                messages: messagesToSend,
                 paginationToken: "__END__"
             }
         }
         // get the id of the next message (check to see if it is exactly the last message)
         if (nextMessageIndex + 10 >= this.messages.length) {
             return {
-                messages: messagesToSend.map((message) => message.getTextFormated()),
+                messages: messagesToSend,
                 paginationToken: "__END__"
             }
         }
 
-        const nextMessageId2 = this.messages[nextMessageIndex + 10].id;
+        nextMessageId = this.messages[nextMessageIndex + 10].id;
         // generate Unique ID for this user that contains the message id of the next message to be sent
-        let paginationToken = `__${nextMessageId2.toString().padStart(10, '0')}__`;
+        let paginationToken = `__${nextMessageId.toString().padStart(10, '0')}__`;
         // if the next message is the last one, then send "__END__" as the token
-        if (nextMessageId2 === this.messages.length - 1) {
+        if (nextMessageId === this.messages.length - 1) {
             paginationToken = "__END__";
         }
-        const result: MessageContainer = {
-            messages: messagesToSend.map((message) => message.getTextFormated()),
+        const result: MessagesContainer = {
+            messages: messagesToSend,
             paginationToken: paginationToken
         }
         return result;

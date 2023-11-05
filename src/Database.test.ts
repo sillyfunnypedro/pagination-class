@@ -1,14 +1,11 @@
 
 import { describe, expect, test } from '@jest/globals';
 import { Database, Message } from './Database';
+import { MessagesContainer, MessageContainer } from './Globals';
 import { get } from 'http';
 
 
-function getMessageText(message: string): string {
-    // strip the date off the front of the message
-    const result = message.split(']')[1];
-    return result.trim();
-}
+
 
 describe('Database', () => {
 
@@ -25,8 +22,8 @@ describe('Database', () => {
         db.addMessage(userJose, messageText);
         const messages = db.getMessages('');
         const message0 = messages.messages[0];
-        const message0Text = getMessageText(message0);
-        expect(message0Text).toBe("Jose: Hello, world!");
+
+        expect(message0.user).toBe(userJose);
     });
 
     test('getMessages 10', () => {
@@ -130,6 +127,5 @@ describe('Database', () => {
 
 
     });
-
 
 });
