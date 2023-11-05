@@ -7,3 +7,5 @@ export interface MessageContainer {
     messages: string[],
     paginationToken: string
 }
+
+export const serverPort = 5800;
