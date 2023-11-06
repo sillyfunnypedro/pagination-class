@@ -35,7 +35,7 @@ async function resetTestData() {
 }
 
 async function sendTestMessage(message: string, user: string) {
-    const url = `${baseURL}/message/${user}/${message}}`;
+    const url = `${baseURL}/message/${user}/${message}`;
     return await axios.get(url);
 }
 
