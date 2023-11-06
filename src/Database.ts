@@ -53,19 +53,6 @@ class Message implements MessageContainer {
         this.id = id;
 
     }
-    /**
-     * Get the message text
-     * 
-     * @returns {string} 
-     * @memberof Message
-     */
-    getText(): string {
-        return this.message;
-    }
-
-    getTextFormated(): string {
-        return `[${this.timestamp.toLocaleTimeString()}]${this.user}: ${this.message}`;
-    }
 }
 
 
@@ -173,7 +160,9 @@ class Database {
             }
         }
 
-        // get the ten messages to send (the last ones)
+        // At this point we know we have some messages to send.
+
+
 
         const messagesToSend = this.messages.slice(nextMessageIndex, nextMessageIndex + 10);
         if (messagesToSend.length < 10) {
@@ -182,7 +171,9 @@ class Database {
                 paginationToken: "__END__"
             }
         }
-        // get the id of the next message (check to see if it is exactly the last message)
+
+        // so there were 10 messages to send.   
+        // Are these 10 the last 10, if so then send "__END__" as the token
         if (nextMessageIndex + 10 >= this.messages.length) {
             return {
                 messages: messagesToSend,

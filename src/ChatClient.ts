@@ -12,6 +12,7 @@ import { MessagesContainer, MessageContainer } from "./Globals";
 class ChatClient {
 
     earliestMessageID: number = 10000000000;
+    previousMessagesFetched: boolean = false;
 
     messages: MessageContainer[] = [];
 
@@ -22,6 +23,7 @@ class ChatClient {
      */
     constructor() {
         console.log("ChatClient");
+        this.getMessages();
         this.getMessagesContinuously();
     }
 
@@ -47,12 +49,15 @@ class ChatClient {
         if (messageID > this.messages[0].id) {
             this.messages.unshift(message);
             console.log(`inserted message ${messageID} at the beginning of the array`)
+
             return;
         }
 
         if (messageID < this.messages[this.messages.length - 1].id) {
             this.messages.push(message);
             console.log(`inserted message ${messageID} at the end of the array`)
+            this.previousMessagesFetched = true;
+
             return;
         }
         // console.log(`Message is not inserted ${messageID}`)
@@ -101,8 +106,9 @@ class ChatClient {
 
     getNextMessages() {
         console.log("getNextMessages()");
-        console.log(`this.earliestMessageID: ${this.earliestMessageID}`);
-        const pagingToken = `__${this.earliestMessageID.toString().padStart(10, '0')}__`;
+        console.log(`this.earliestMessageID: ${this.earliestMessageID - 1}`);
+        const nextMessageToFetch = this.earliestMessageID - 1;
+        const pagingToken = `__${nextMessageToFetch.toString().padStart(10, '0')}__`;
         this.getMessages(pagingToken);
     }
 

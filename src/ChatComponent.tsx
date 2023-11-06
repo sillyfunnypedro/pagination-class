@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
 import { MessageContainer } from "./Globals";
 
@@ -18,18 +18,30 @@ function ChatComponent() {
     const [mostRecentId, setMostRecentId] = useState<number>(0);
     const [user, setUser] = useState<string>("Jose");
     const [message, setMessage] = useState<string>("Hello World");
+    const bottomRef = useRef(null);
+
 
     let localUser = user;
     let localMessage = message;
     const updateDisplay = useCallback(() => {
-        // check to see if we need to update
+        let updateNeeded = false;
         const newLastId = chatClient.messages[0].id;
-        if (newLastId === mostRecentId) {
+        if (newLastId !== mostRecentId) {
+            updateNeeded = true;
+        }
+        if (chatClient.previousMessagesFetched) {
+            updateNeeded = true;
+            chatClient.previousMessagesFetched = false;
+        }
+        if (!updateNeeded) {
             return;
         }
-        setMessages(chatClient.messages);
+
+        let newMessages = [...chatClient.messages];
+
+        setMessages(newMessages);
         setMostRecentId(newLastId);
-    }, []);
+    }, [mostRecentId, messages]);
 
     useEffect(() => {
         chatClient.setCallback(updateDisplay);
@@ -37,15 +49,20 @@ function ChatComponent() {
 
 
     function makeFormatedMessages() {
-        let formatedMessages = [...messages].reverse().map((message, index) => (
-            <textarea key={index} readOnly value={message.user + ": " + message.message} />
-        ));
+        let formatedMessages = [...messages].reverse().map((message, index, array) => {
+            if (index === array.length - 1) { // if this is the last message
+                return <textarea key={index} readOnly value={message.id + "]" + message.user + ": " + message.message} ref={bottomRef} />
+            } else {
+                return <textarea key={index} readOnly value={message.id + "]" + message.user + ": " + message.message} />
+            }
+        });
         return formatedMessages;
     }
 
     return (
         <div>
             <h1>Chat Component</h1>
+            <button onClick={() => chatClient.getNextMessages()}>Get Messages</button>
             <div className="scrollable-text-view">
                 {makeFormatedMessages()}
             </div>
