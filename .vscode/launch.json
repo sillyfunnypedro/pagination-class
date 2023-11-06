@@ -37,5 +37,12 @@
             "command": "npm run test-server",
             "cwd": "${workspaceFolder}"
         },
+        {
+            "type": "node-terminal",
+            "name": "Test Render Server",
+            "request": "launch",
+            "command": "npm run test-server 'https://pagination-demo.onrender.com'",
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }

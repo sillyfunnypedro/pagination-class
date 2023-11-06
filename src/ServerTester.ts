@@ -9,9 +9,13 @@ import { send } from 'process';
 // get the command line arguments
 
 
-const baseURL = `http://localhost:${serverPort}`;
+let baseURL = `http://localhost:${serverPort}`;
 
 const args = process.argv.slice(2);
+
+if (args.length === 1) {
+    baseURL = args[0];
+}
 if (args.length !== 1) {
     console.error('Usage: node ServerTester serverURL[http://localhost:5800]');
     console.log(`using default serverURL: ${baseURL}`);
