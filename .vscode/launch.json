@@ -17,17 +17,24 @@
             ]
         },
         {
-            "name": "Run Database Tests",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "npx jest Database",
-            "cwd": "${workspaceFolder}"
-        },
-        {
             "type": "node-terminal",
             "name": "Start Server",
             "request": "launch",
             "command": "npm run start-server",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Start Client",
+            "request": "launch",
+            "command": "npm start",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Run Database Tests",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npx jest Database",
             "cwd": "${workspaceFolder}"
         },
         {

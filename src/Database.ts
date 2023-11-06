@@ -159,8 +159,10 @@ class Database {
             return result;
         }
 
+        // get rid of the __ at the beginning and end of the token
+        pagingToken = pagingToken.substring(2, pagingToken.length - 2);
         // get the next message id from the token
-        let nextMessageId = parseInt(pagingToken.substring(2, 12));
+        let nextMessageId = parseInt(pagingToken);
         // get the index of the next message
         const nextMessageIndex = this.messages.findIndex((message) => message.id === nextMessageId);
         // if the next message is not found, then return empty array and "__END__"

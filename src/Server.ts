@@ -30,6 +30,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// enable CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+});
+
 
 
 app.get('/reset', (req, res) => {
