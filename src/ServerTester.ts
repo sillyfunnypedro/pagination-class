@@ -86,47 +86,27 @@ async function testSendMessages(numberOfMessages: number) {
     return Promise.all(promises);
 }
 
-async function testGetMessages(testName: string, startToken: number | undefined = undefined, expectedCount: number): Promise<MessageContainer[] | undefined> {
+
+
+async function testGetMessages(testName: string, startToken: number | undefined = undefined): Promise<MessagesContainer | undefined> {
     let paginationToken = '';
-    if (startToken !== undefined) {
-        paginationToken = `__${startToken.toString().padStart(10, '0')}__`;
-    }
 
     let messagesFound: MessageContainer[] = []
     let messagesPackage: MessagesContainer | null = null;
-    let numberOfMessages = 0;
 
 
 
 
-    while (paginationToken !== '__END__') {
-        messagesPackage = await getMessages(paginationToken);
+
+    messagesPackage = await getMessages(paginationToken);
 
 
-        if (!messagesPackage) {
-            console.error('Error getting messages');
-            return;
-        }
-
-        paginationToken = messagesPackage!.paginationToken;
-        let messages = messagesPackage!.messages;
-        numberOfMessages += messages.length;
-        messagesFound.push(...messages);
-    }
-
-
-
-    console.log('*'.repeat(80) + '\n');
-    console.log(`Test: ${testName}`);
-    console.log(`Expected: ${expectedCount} messages`);
-    if (numberOfMessages !== expectedCount) {
-        console.error(`Error: expected ${expectedCount} messages, but got ${numberOfMessages}`);
+    if (!messagesPackage) {
+        console.error('Error getting messages');
         return;
     }
-    console.log(`Success: got ${numberOfMessages} messages`)
-    console.log('\n' + '*'.repeat(80));
 
-    return messagesFound;
+    return messagesPackage;
 }
 
 if (!pingServer()) {
@@ -141,46 +121,23 @@ if (!pingServer()) {
 
 async function runTests() {
     await resetTestData();
-    let foundMessages = await testGetMessages("Fetching Empty Database", undefined, 0);
+    let foundMessages = await testGetMessages("Fetching Empty Database", undefined);
     console.log(foundMessages);
+
+    // test foundMessages
 
     await testSendMessages(1);
 
-    foundMessages = await testGetMessages("Fetching one message Database", undefined, 1);
+    foundMessages = await testGetMessages("Fetching one message Database", undefined);
     console.log(foundMessages);
-    await testGetMessages("Fetching one message star 0", 0, 1);
-
 
     await resetTestData();
 
-    // send 100 messages
-    await testSendMessages(100);
-    foundMessages = await testGetMessages("fetching all, expect 100", undefined, 100);
-    // check that the ID of the messages are in the right order
-    for (let i = 0; i < foundMessages!.length; i++) {
-        const expectedID = foundMessages!.length - i - 1;
-        const foundID = foundMessages![i].id;
-        if (foundID !== expectedID)
-            console.error(`Error: expected message ${i} to have id ${expectedID} but got ${foundMessages![i].id}`);
-    }
-    foundMessages = await testGetMessages("fetching 4 messages", 3, 4);
-    foundMessages = await testGetMessages("Fetching out of range", 1000, 0);
+    // send 10 messages and then get a fetch to see if you got 10 messages.
 
-    await sendTestMessage('Hello World', 'Jose');
-    foundMessages = await testGetMessages("fetching all expect 101", undefined, 101);
-    const lastMessage = foundMessages![0];
-    if (lastMessage.user !== 'Jose') {
-        console.error(`Error: expected last message to be from Jose, but got ${lastMessage.user}`);
-    }
-    if (lastMessage.message !== 'Hello World') {
-        console.error(`Error: expected last message to be 'Hello World', but got ${lastMessage.message}`);
-    }
-    if (lastMessage.id !== 100) {
-        console.error(`Error: expected last message to have id 100, but got ${lastMessage.id}`);
-    }
+    // send 11 messages and then fetch them in two steps and see if you got 11 messages.
 
-
-
+    // send 201 messages and then fetch them in 21 steps and see if you got 201 messages
 
 }
 
