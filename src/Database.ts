@@ -122,7 +122,7 @@ class Database {
         }
 
         // if less than paging size then send message and "__END__"
-        if (this.messages.length <= 10) {
+        if (this.messages.length <= 10 && pagingToken === "") {
             const result: MessagesContainer = {
                 messages: this.messages,
                 paginationToken: "__END__"
