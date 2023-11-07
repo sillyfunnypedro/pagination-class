@@ -127,5 +127,12 @@ describe('Database', () => {
 
 
     });
+    test(' Get a message that does not exist', () => {
+        let db = new Database();
+        const messages = db.getMessages('0700000000');
+        expect(messages.messages.length).toBe(0);
+        expect(messages.paginationToken).toBe("__END__");
+    });
+
 
 });
