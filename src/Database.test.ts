@@ -93,6 +93,33 @@ describe('Database', () => {
         expect(messages.paginationToken).toBe("__END__");
     });
 
+    test('reset', () => {
+        let db = new Database();
+        db.addMessage(userJose, 'Hello, world!');
+        db.reset();
+        const messages = db.getMessages('');
+        expect(messages.messages.length).toBe(0);
+        expect(messages.paginationToken).toBe("__END__");
+    });
+
+    test('getAllMessages', () => {
+        let db = new Database();
+        db.addMessage(userJose, 'Hello, world!');
+        db.addMessage(userMaria, 'Hola, mundo!');
+        const result = db.getAllMessages();
+        expect(result.messages.length).toBe(2);
+        expect(result.paginationToken).toBe("__TEST_DISABLE_IN_PRODUCTION__");
+
+    });
+
+    test('getMessages with "__END__" token', () => {
+        let db = new Database();
+        db.addMessage(userJose, 'Hello, world!');
+        const messages = db.getMessages('__END__');
+        expect(messages.messages.length).toBe(0);
+        expect(messages.paginationToken).toBe("__END__");
+    });
+
     test('getMessages 25 +1', () => {
         let db = new Database();
         for (let i = 0; i < 25; i++) {
@@ -127,5 +154,12 @@ describe('Database', () => {
 
 
     });
+    test(' Get a message that does not exist', () => {
+        let db = new Database();
+        const messages = db.getMessages('0700000000');
+        expect(messages.messages.length).toBe(0);
+        expect(messages.paginationToken).toBe("__END__");
+    });
+
 
 });

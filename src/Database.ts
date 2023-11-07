@@ -185,9 +185,7 @@ class Database {
         // generate Unique ID for this user that contains the message id of the next message to be sent
         let paginationToken = `__${nextMessageId.toString().padStart(10, '0')}__`;
         // if the next message is the last one, then send "__END__" as the token
-        if (nextMessageId === this.messages.length - 1) {
-            paginationToken = "__END__";
-        }
+
         const result: MessagesContainer = {
             messages: messagesToSend,
             paginationToken: paginationToken
